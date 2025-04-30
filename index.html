@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Phonoscript - Smart Recognition</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <style>
+    :root {
+      --primary: #ffcc00;
+      --secondary: #00b4d8;
+      --dark: #0a192f;
+      --light: #ccd6f6;
+    }
+    body {
+      background: linear-gradient(135deg, #0a192f 0%, #020c1b 100%);
+      color: var(--light);
+      min-height: 100vh;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .glass-card {
+      background: rgba(16, 24, 39, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .glass-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    }
+    .btn-neon {
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      border: none;
+      color: #000;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      padding: 12px 25px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+    .btn-neon:hover {
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+      transform: scale(1.05);
+    }
+    .waveform {
+      height: 100px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      position: relative;
+      overflow: hidden;
+    }
+    .upload-box {
+      border: 2px dashed rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+    }
+    .upload-box.dragover {
+      border-color: var(--primary);
+      background: rgba(0, 255, 136, 0.05);
+    }
+    .result-box {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      padding: 1.5rem;
+      min-height: 150px;
+    }
+    .pulse {
+      animation: pulse 3s infinite;
+    }
+    #textResult {
+      font-weight: 700 !important;
+      font-size: 1.2rem;
+      line-height: 1.6;
+      color: var(--primary) !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    .result-box .text-muted {
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8) !important;
+      font-size: 1.1rem;
+    }
+    .glass-card h3 {
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    .waveform .text-muted {
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.6) !important;
+    }
+    @keyframes wave {
+      0% { transform: scaleY(1); }
+      50% { transform: scaleY(1.5); }
+      100% { transform: scaleY(1); }
+    }
+    .waveform::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: wave 3s infinite linear;
+    }
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .processing-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .processing-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--primary);
+      border-top: 4px solid transparent;
+      border-radius: 50%;
+      animation: rotate 2s linear infinite;
+    }
+  </style>
+</head>
+<body class="d-flex flex-column">
+  <div class="container my-auto py-5">
+    <div class="text-center mb-5 fade-in">
+      <h1 class="display-4 fw-bold mb-3">
+        <span class="text-primary">Phonoscript</span>
+        <span class="text-light">AI</span>
+      </h1>
+      <p class="lead text-muted">Advanced Voice & Text Recognition System</p>
+    </div>
+
+    <div class="row g-4">
+      <!-- Voice Recognition -->
+      <div class="col-lg-6 fade-in">
+        <div class="glass-card p-4 h-100 position-relative">
+          <div class="d-flex align-items-center mb-4">
+            <i class="fas fa-microphone-alt fs-3 text-primary me-3"></i>
+            <h3 class="mb-0">Voice Recognition</h3>
+          </div>
+
+          <div class="waveform mb-4" id="waveform">
+            <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center">
+              <span class="text-muted">Audio waveform visualization</span>
+            </div>
+          </div>
+
+          <div class="d-flex gap-3">
+            <button class="btn-neon flex-grow-1 pulse" id="recordButton">
+              <i class="fas fa-microphone me-2"></i>
+              Start Recording
+            </button>
+            <button class="btn-neon" id="stopButton" disabled>
+              <i class="fas fa-stop me-2"></i>
+              Stop
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- OCR -->
+      <div class="col-lg-6 fade-in">
+        <div class="glass-card p-4 h-100 position-relative">
+          <div class="d-flex align-items-center mb-4">
+            <i class="fas fa-text-height fs-3 text-secondary me-3"></i>
+            <h3 class="mb-0">OCR Processing</h3>
+          </div>
+
+          <div class="upload-box text-center mb-4" id="dropZone">
+            <i class="fas fa-cloud-upload-alt fs-1 text-muted mb-3"></i>
+            <p class="mb-0">Drag & drop image or <br> click to upload</p>
+            <input type="file" id="imageUpload" accept="image/*" hidden />
+          </div>
+
+          <div class="result-box">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="text-muted">Extracted Text:</span>
+              <button class="btn btn-sm btn-dark" onclick="copyText()">
+                <i class="fas fa-copy"></i>
+              </button>
+            </div>
+            <div id="textResult" class="text-primary"></div>
+            <button class="btn btn-neon mt-3" onclick="summarizeText()">Summarize</button>
+            <button class="btn btn-neon mt-3" onclick="correctGrammar()">Correct Grammar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner Overlay -->
+  <div class="processing-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/6.6.3/wavesurfer.min.js"></script>
+  <script>
+    const wavesurfer = WaveSurfer.create({
+      container: '#waveform',
+      waveColor: 'rgba(255, 255, 255, 0.2)',
+      progressColor: 'var(--primary)',
+      cursorColor: 'transparent',
+      height: 100,
+      responsive: true
+    });
+
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    function toggleLoader(show) {
+      loadingOverlay.classList.toggle('active', show);
+    }
+
+    let mediaRecorder;
+    let audioChunks = [];
+
+    document.getElementById('recordButton').addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+        audioChunks = [];
+
+        document.getElementById('recordButton').classList.remove('pulse');
+        document.getElementById('stopButton').disabled = false;
+
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+
+        mediaRecorder.onstop = async () => {
+          toggleLoader(true);
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+          const formData = new FormData();
+          formData.append('audio', audioBlob, 'recording.wav');
+
+          const response = await fetch('/voice', { method: 'POST', body: formData });
+          const result = await response.json();
+          document.getElementById('textResult').innerText = result.text || result.error;
+          toggleLoader(false);
+        };
+      } catch (err) {
+        alert("Microphone access denied.");
+      }
+    });
+
+    document.getElementById('stopButton').addEventListener('click', () => {
+      mediaRecorder.stop();
+      document.getElementById('stopButton').disabled = true;
+    });
+
+    // OCR
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('imageUpload');
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault(); dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault(); dropZone.classList.remove('dragover');
+      handleImageUpload(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => handleImageUpload(e.target.files[0]));
+
+    async function handleImageUpload(file) {
+      toggleLoader(true);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/text', { method: 'POST', body: formData });
+      const result = await response.json();
+      document.getElementById('textResult').innerText = result.text || result.error;
+      toggleLoader(false);
+    }
+
+    // Features
+    function copyText() {
+      const text = document.getElementById('textResult').innerText;
+      if (text) navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+    }
+
+    async function summarizeText() {
+      const text = document.getElementById('textResult').innerText;
+      if (!text) return alert("No text to summarize!");
+      toggleLoader(true);
+      const response = await fetch('/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      const result = await response.json();
+      document.getElementById('textResult').innerText = result.summary || result.error;
+      toggleLoader(false);
+    }
+
+    async function correctGrammar() {
+      const text = document.getElementById('textResult').innerText;
+      if (!text) return alert("No text to correct!");
+      toggleLoader(true);
+      const response = await fetch('/grammar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      const result = await response.json();
+      document.getElementById('textResult').innerText = result.corrected || result.error;
+      toggleLoader(false);
+    }
+  </script>
+</body>
+</html>

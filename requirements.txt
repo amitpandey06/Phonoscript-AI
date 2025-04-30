@@ -1,0 +1,28 @@
+Activate your virtual environment first :-
+# Navigate to your project directory
+cd C:\Users\BUDDY\OneDrive\Desktop\My_FastAPI_App
+
+# Activate the virtual environment
+venv\Scripts\activate
+
+
+Install required libraries:-
+pip install transformers torch pytesseract pillow fastapi uvicorn python-multipart
+
+
+
+Verify installation :-
+pip list  (You should see transformers, torch, and other required packages in the list.)
+
+Run server:-
+uvicorn main:app --reload
+p
+
+
+/phonoscript-app
+├── main.py
+├── frontend/
+│   ├── index.html
+│   ├── /static/
+│       ├── style.css
+│       ├── script.js

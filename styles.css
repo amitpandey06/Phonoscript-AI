@@ -1,0 +1,152 @@
+body {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    font-family: 'Arial', sans-serif;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.btn {
+    margin-right: 10px;
+}
+
+#voiceResult, #textResult {
+    font-size: 1.2rem;
+    color: #00ff00;
+    background-color: #333;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+/* Add to styles.css */
+/* Loading spinner animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .processing-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(16, 24, 39, 0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
+  }
+  
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--primary);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  /* Progress bar for file upload */
+  .upload-progress {
+    width: 0%;
+    height: 3px;
+    background: var(--primary);
+    transition: width 0.3s ease;
+  }
+  /* Add hover animations */
+.glass-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .glass-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Button animations */
+  .btn-neon {
+    transition: all 0.3s ease;
+  }
+  
+  .btn-neon:hover {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+  }
+  
+  /* Text result fade-in */
+  #textResult {
+    animation: fadeIn 0.5s ease;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  /* Drag & drop animation */
+@keyframes pulseBorder {
+    0% { border-color: rgba(255, 255, 255, 0.1); }
+    50% { border-color: var(--primary); }
+    100% { border-color: rgba(255, 255, 255, 0.1); }
+  }
+  
+  .upload-box.dragover {
+    animation: pulseBorder 1.5s infinite;
+  }
+  /* Keyframes for pulse animation */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(208, 255, 0, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(0, 255, 136, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+}
+
+/* Keyframes for wave animation */
+@keyframes wave {
+    0% { transform: scaleY(1); }
+    50% { transform: scaleY(1.5); }
+    100% { transform: scaleY(1); }
+}
+
+/* Keyframes for rotate animation */
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Keyframes for fadeIn animation */
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Updated Animation Durations */
+.pulse {
+    animation: pulse 3s infinite; /* Slowed down from 2s to 3s */
+}
+
+.waveform::before {
+    animation: wave 3s infinite linear; /* Slowed down from 1.5s to 3s */
+}
+
+.spinner {
+    animation: rotate 2s linear infinite; /* Slowed down from 1s to 2s */
+}
+
+.fade-in {
+    animation: fadeIn 1s ease; /* Slowed down from 0.5s to 1s */
+}
